@@ -22,14 +22,25 @@ Proyek ini memisahkan aktor menjadi **Publishers** (Pengirim Data) dan **Subscri
     *   `sg_pub_vehicle.js`
     *   `sg_pub_electric.js`
 *   **Subscribers:** 
-    *   `sg_sub_monitor.js` *(Tampilan Live Table Dashboard)*
+    *   `sg_sub_monitor.js` *(CLI Live Table Dashboard)*
+    *   `dashboard/index.html` *(Web Dashboard)*
     *   `sg_sub_alert.js` *(Notifikasi jika ada anomali)*
     *   `sg_sub_logger.js` *(Menyimpan histori data ke file `garage_history.log` tiap 5 detik)*
 *   **Launcher:** `start_publishers.js` *(Shortcut langsung run semua Publisher)*
 
 ---
 
-## 🛠️ Cara Menjalankan
+## 🌐 Web Dashboard Monitor (Modern UI)
+Proyek ini sekarang dilengkapi dengan **Web Dashboard interaktif** bergaya UI modern (Pill-shaped, Accent Colors, Clean Design). Dashboard ini membaca arus data MQTT langsung dari *browser* menggunakan protokol **WebSockets**, sehingga tidak memerlukan instalasi aplikasi tambahan.
+
+**Cara Membuka Web Dashboard:**
+1. Masuk ke dalam folder `dashboard`.
+2. Buka file `index.html` dengan cara *double click* atau menggunakan ekstensi **Live Server** di VSCode.
+3. Dashboard akan langsung terkoneksi ke broker MQTT (via WebSockets) secara mandiri dan langsung menampilkan visualisasi tabel/grafik secara ciamik!
+
+---
+
+## 🛠️ Cara Menjalankan Keseluruhan Sistem
 Buka 4 terminal/command prompt terpisah di folder ini:
 
 1. **Terminal 1:** `node start_publishers.js` 
