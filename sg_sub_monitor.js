@@ -11,14 +11,14 @@ const state = {
 };
 
 function getColorStatus(status) {
-    if (['healthy', 'closed', 'stable', 'idle', 'normal'].includes(status)) return `\x1b[32m${status}\x1b[0m`; 
-    if (['low fuel', 'low batt', 'hot', 'rain', 'opened'].includes(status)) return `\x1b[33m${status}\x1b[0m`; 
-    if (['bad', 'fire alert', 'overload'].includes(status)) return `\x1b[31m\x1b[1m${status}\x1b[0m`; 
+    if (['healthy', 'closed', 'stable', 'idle', 'normal'].includes(status)) return `\x1b[32m${status}\x1b[0m`;
+    if (['low fuel', 'low batt', 'hot', 'rain', 'opened'].includes(status)) return `\x1b[33m${status}\x1b[0m`;
+    if (['bad', 'fire alert', 'overload'].includes(status)) return `\x1b[31m\x1b[1m${status}\x1b[0m`;
     return status;
 }
 
 client.on('connect', () => {
-    // FITUR 2: Topic Wildcard (#) - Subscribe ke semua topik smartgarage
+    // FITUR 2 = topic wildcard
     client.subscribe('smartgarage/#', { qos: 2 });
 });
 
@@ -38,13 +38,13 @@ client.on('message', (topic, message, packet) => {
         }
 
         renderTable();
-    } catch(e) {}
+    } catch (e) { }
 });
 
 function renderTable() {
     process.stdout.write('\x1B[2J\x1B[0f'); // Clear screen & reset cursor (live update tanpa print ulang ke bawah)
     console.log(`\x1b[36m\x1b[1m=== 🛡️ SMART GARAGE LIVE MONITOR (${new Date().toLocaleTimeString()}) ===\x1b[0m\n`);
-    
+
     // Tabel Kendaraan
     const tableVehicles = new Table({ head: ['Kendaraan', 'Baterai (V)', 'BBM (%)', 'Status'] });
     Object.values(state.vehicles).forEach(v => {

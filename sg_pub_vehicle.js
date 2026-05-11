@@ -11,11 +11,11 @@ client.on('connect', () => {
     setInterval(() => {
         vehicles.forEach(v => {
             // Simulasi penurunan fuel dan tegangan aki
-            v.volt -= (Math.random() * 0.1); 
+            v.volt -= (Math.random() * 0.1);
             v.fuel -= (Math.random() * 0.5);
 
-            if(v.volt < 11.0) v.volt = 14.2; // Simulasi mesin nyala/ngecas
-            if(v.fuel < 2) v.fuel = 100; // Simulasi isi bensin
+            if (v.volt < 11.0) v.volt = 14.2; // Simulasi mesin nyala/ngecas
+            if (v.fuel < 2) v.fuel = 100; // Simulasi isi bensin
 
             let status = 'healthy';
             if (v.fuel < 20 && v.volt >= 11.5) status = 'low fuel';
@@ -24,7 +24,7 @@ client.on('connect', () => {
 
             const payload = JSON.stringify({ id: v.id, voltage: v.volt, fuel: v.fuel, status });
 
-            // FITUR 4: User Properties (Menyelipkan Metadata di Header)
+            // FITUR 4 = user properties
             const options = {
                 qos: 1,
                 properties: {
@@ -35,7 +35,7 @@ client.on('connect', () => {
                 }
             };
 
-            client.publish(`smartgarage/vehicle/${v.id.replace(' ','_')}`, payload, options);
+            client.publish(`smartgarage/vehicle/${v.id.replace(' ', '_')}`, payload, options);
         });
     }, 3000);
 });
