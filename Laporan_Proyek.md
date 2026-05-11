@@ -1,6 +1,6 @@
-# 🚘 Laporan Tugas Integrasi Sistem - MQTT
+# Laporan Tugas Integrasi Sistem - MQTT
 
-## 👥 Anggota Kelompok
+## Anggota Kelompok
 | No | Nama | NRP |
 |---|---|---|
 | 1 | Imam Mahmud Dalil Fauzan | 5027241100 |
@@ -8,20 +8,17 @@
 
 ---
 
-## 📌 Deskripsi Singkat Proyek
-**"Smart Garage Monitor"** adalah sistem pemantauan ekosistem garasi pintar kelas *Enterprise* berbasis IoT. Proyek ini menggunakan protokol komunikasi komunikasi **MQTT versi 5** untuk mentransmisikan data telemetri secara efisien. Sistem ini memantau 4 aspek utama secara *real-time*:
+## Deskripsi Proyek
+**"Smart Garage Monitor"** adalah sistem monitoring ekosistem garasi berbasis IoT. Proyek ini menggunakan protokol komunikasi **MQTT v5** untuk mengirimkan data secara efisien. Sistem ini memantau 4 aspek utama secara *real-time*:
 1. Suhu & Kelembapan Lingkungan Garasi.
 2. Keamanan Gerbang Utama.
 3. Status Daya Panel Listrik.
-4. Telemetri Kendaraan (Kondisi Aki dan BBM dari armada kendaraan).
+4. Kondisi Kendaraan (Tegangan Aki dan Level BBM).
 
-Data dipublikasikan secara asinkron oleh 4 *Publishers* (sensor simulasi) yang berbeda, dan diterima secara paralel oleh 3 sistem *Subscribers* (Live Dashboard, Alert Engine, dan Data Logger).
+Data dikirim secara asinkron oleh 4 *Publishers* (Sensor Simulasi) yang berbeda, dan diterima secara paralel oleh 3 sistem *Subscribers* (Live Dashboard, Alert Engine, dan Data Logger).
 
 ---
-
-## 🏛️ Arsitektur Sistem
-Berikut adalah arsitektur aliran data sistem IoT ini:
-
+## Arsitektur Sistem
 ```mermaid
 graph TD
     %% Publishers
@@ -36,12 +33,8 @@ graph TD
     B -->|Subscribe: smartgarage/#| S3[Data Logger<br>sub_logger.js]
     B -->|WebSockets: smartgarage/#| S4[Web Dashboard<br>app.js]
 ```
-
 ---
-
-## 🌳 Design Topic (Topic Tree)
-Struktur topik dirancang secara hierarkis mengikuti standar industri (*best practice*) untuk memudahkan pengorganisasian data dan penerapan *Wildcard routing*:
-
+## Design Topic (Topic Tree)
 ```text
 smartgarage/
 ├── env              -> Metrik Suhu, Kelembapan, dan Status Cuaca
@@ -51,16 +44,14 @@ smartgarage/
     ├── Mobil_SUV    -> Status Voltase Aki & BBM SUV
     └── Motor_Sport  -> Status Voltase Aki & BBM Motor
 ```
-
 ---
-
-## ⚙️ Implementasi 10 Fitur Utama MQTT v5
+## Implementasi 10 Fitur Utama MQTT v5
 
 ### 1. Pub/Sub Model & QoS Dinamis
-* **Penjelasan:** Penggunaan Quality of Service (QoS) disesuaikan dengan urgensi data. Sensor lingkungan (`pub_env`) menggunakan **QoS 0** untuk menghemat *bandwidth* karena hilangnya satu data cuaca tidak berdampak fatal. Sebaliknya, sensor gerbang (`pub_gate`) menggunakan **QoS 2** (*Exactly Once*) untuk menjamin status keamanan pintu tepat diterima 1 kali tanpa risiko duplikasi atau kegagalan *delivery*.
+* **Penjelasan:** Penggunaan Quality of Service (QoS) disesuaikan dengan urgensi data. Sensor lingkungan (`pub_env`) menggunakan **QoS 0** untuk menghemat *bandwidth*. Sensor gerbang (`pub_gate`) menggunakan **QoS 2** (*Exactly Once*) untuk menjamin status keamanan pintu tepat diterima 1 kali tanpa risiko duplikasi atau kegagalan *delivery*.
 
 ### 2. Topic Wildcards (`#`)
-* **Penjelasan:** Semua sistem penerima data (seperti `sub_monitor` dan `sub_alert`) cukup berlangganan ke rute **`smartgarage/#`**. Pendekatan arsitektur ini membuat aplikasi klien sangat *scalable*. Jika ada 100 perangkat baru (misal armada mobil baru) ditambahkan ke dalam broker, aplikasi pemantau otomatis mendeteksi tanpa perlu mengubah *source code*.
+* **Penjelasan:** Semua sistem penerima data (seperti `sub_monitor` dan `sub_alert`) cukup berlangganan ke rute **`smartgarage/#`**. Pendekatan arsitektur ini membuat aplikasi klien sangat *scalable*. Jika ada 100 kendaraan baru  ditambahkan ke dalam broker, aplikasi pemantau otomatis mendeteksi tanpa perlu mengubah *source code*.
 
 ### 3. Efisiensi via Topic Alias
 * **Penjelasan:** Diimplementasikan pada sensor suhu yang mengirim data berkecepatan tinggi tiap detik. Pada pengiriman pertama, ia meregistrasikan ID `topicAlias: 1`. Di pengiriman berikutnya, string topik yang panjang dipangkas menjadi *string* kosong (`""`). Teknik ini mampu memangkas memori *overhead header* jaringan secara masif.
@@ -88,14 +79,14 @@ smartgarage/
 
 ---
 
-## 💻 Dashboard Web Monitor (Modern UI)
-Dashboard pemantauan dikembangkan dengan teknologi HTML/CSS Native (*Vanilla*) bergaya desain **Glassmorphism**, antarmuka melengkung (*Pill-shaped*), dan tipografi modern (Inter). Aplikasi ini terhubung secara seketika (*real-time*) dengan Broker melalui **MQTT over WebSockets**.
+## Dashboard Web Monitor
+Dashboard Web monitor menggunakan HTML/CSS Native (*Vanilla*). Web ini terhubung secara *real-time* dengan Broker melalui **MQTT over WebSockets**.
 
 ### Fitur Visual Dashboard:
-- 🟢 **Live Indicator / Badges:** Perubahan warna dinamis (*Hijau=Stable, Kuning=Warning, Merah=Danger*) untuk tiap kartu perangkat.
-- 🔋 **Progress Bar Bahan Bakar:** Lebar indikator baris BBM yang merespons perubahan level secara *smooth* menggunakan animasi CSS.
-- ⚡ **Dynamic Accent Cards:** Kartu "Beban Listrik" (*Electric*) akan berganti latar belakang menjadi gradien merah gelap jika mendeteksi peringatan *Overload Daya*.
-- 🚨 **Sistem Log Keamanan:** Panel notifikasi asinkron di bagian bawah layar yang menangkap peringatan gerbang terbuka atau bahaya ekstrem suhu (*Fire Alert*).
+- **Live Indicator / Badges:** Perubahan warna dinamis (*Hijau=Stable, Kuning=Warning, Merah=Danger*) untuk tiap kartu perangkat.
+- **Progress Bar Bahan Bakar:** Lebar indikator baris BBM yang merespons perubahan level secara *smooth* menggunakan animasi CSS.
+- **Dynamic Accent Cards:** Sebuah Card "Beban Listrik" (*Electric*) akan berubah warnanya menjadi merah jika mendeteksi peringatan *Overload Daya*.
+- **Sistem Log Keamanan:** Panel notifikasi yang menangkap peringatan gerbang terbuka atau bahaya ekstrem suhu (*Fire Alert*).
 
 ### *Screenshot* Tampilan Web Dashboard:
 ![Screenshot Web Dashboard](resources/ss-dashboard.png)
