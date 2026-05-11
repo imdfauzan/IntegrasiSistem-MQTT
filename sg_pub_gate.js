@@ -17,16 +17,42 @@ client.on('connect', () => {
     // Kirim status online
     client.publish('smartgarage/status', JSON.stringify({ id: 'Gate-System', online: true }), { qos: 1, retain: true });
 
-    // FITUR 1 5 = QoS 2 dan Retain: true (simpan status terakhir)
+    // FITUR 1 5 = QoS 2 dan Retain: true
     const publishGate = (status) => {
         const payload = JSON.stringify({ status });
         client.publish('smartgarage/gate', payload, { qos: 2, retain: true });
     };
 
-    publishGate('closed'); // status awal
+    // FITUR 8: Request-Response (Responder) untuk Remote Control
+    client.subscribe('smartgarage/gate/control');
+    
+    client.on('message', (topic, message, packet) => {
+        if (topic === 'smartgarage/gate/control') {
+            const req = JSON.parse(message.toString());
+            console.log(`🎮 [Remote] Command Received: ${req.action}`);
+            
+            if (req.action === 'OPEN') isOpen = true;
+            else if (req.action === 'CLOSE') isOpen = false;
 
-    setInterval(() => {
-        isOpen = !isOpen;
-        publishGate(isOpen ? 'opened' : 'closed');
-    }, 10000);
+            const status = isOpen ? 'opened' : 'closed';
+            publishGate(status);
+
+            // Balas ke dashboard bahwa perintah sukses
+            if (packet.properties && packet.properties.responseTopic) {
+                const responsePayload = JSON.stringify({
+                    success: true,
+                    status: status,
+                    message: `Gate successfully ${status}`
+                });
+
+                client.publish(packet.properties.responseTopic, responsePayload, {
+                    properties: {
+                        correlationData: packet.properties.correlationData
+                    }
+                });
+            }
+        }
+    });
+
+    publishGate('closed'); // status awal
 });

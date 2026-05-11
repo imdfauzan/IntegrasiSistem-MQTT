@@ -1,6 +1,8 @@
 // Koneksi ke public EMQX broker via secure WebSocket
 const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt', { protocolVersion: 5 });
 
+const RESPONSE_TOPIC_GATE = 'smartgarage/gate/response';
+
 const vehiclesData = {};
 const systemHealth = {};
 
@@ -11,6 +13,8 @@ client.on('connect', () => {
     
     // Subscribe ke semua topik smartgarage (Fitur 2: Wildcard)
     client.subscribe('smartgarage/#', { qos: 1 });
+    // Subscribe ke response topic untuk gate
+    client.subscribe(RESPONSE_TOPIC_GATE);
 });
 
 client.on('message', (topic, message, packet) => {
@@ -24,6 +28,13 @@ client.on('message', (topic, message, packet) => {
             if (!payload.online) {
                 addAlert('⚠️ SYSTEM', `Perangkat ${payload.id} terputus (OFFLINE)!`);
             }
+        }
+        
+        // --- RESPONSE GATE (Fitur 8) ---
+        else if (topic === RESPONSE_TOPIC_GATE) {
+            const corrData = packet.properties.correlationData.toString();
+            console.log(`✅ Received Response for ${corrData}`);
+            addAlert('✅ REMOTE', payload.message);
         }
         
         // --- LINGKUNGAN (Fitur 3: Topic Alias) ---
@@ -175,4 +186,20 @@ function renderHealth() {
             </div>
         `;
     });
+}
+
+function controlGate(action) {
+    const correlationId = 'CMD_' + Date.now();
+    const payload = JSON.stringify({ action: action });
+
+    const options = {
+        qos: 1,
+        properties: {
+            responseTopic: RESPONSE_TOPIC_GATE,
+            correlationData: correlationId
+        }
+    };
+
+    console.log(`📡 Sending Command: ${action} (${correlationId})`);
+    client.publish('smartgarage/gate/control', payload, options);
 }

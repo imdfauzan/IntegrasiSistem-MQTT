@@ -132,8 +132,19 @@ header {
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 18px; color: #374151; transition: all 0.3s;
 }
-.gate-status.opened { background: #fee2e2; color: #991b1b; }
-.gate-status.closed { background: #dcfce7; color: #166534; }
+.gate-status.opened { background: #f3f4f6; color: #4b5563; } /* Abu-abu */
+.gate-status.closed { background: #fee2e2; color: #991b1b; } /* Merah */
+
+/* Remote Control Buttons */
+.btn-gate {
+    flex: 1; padding: 12px; border: none; border-radius: 12px;
+    font-weight: 700; font-size: 14px; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.btn-gate.open { background: #fee2e2; color: #991b1b; }
+.btn-gate.close { background: #dcfce7; color: #166534; }
+.btn-gate:hover { filter: brightness(0.95); transform: translateY(-1px); }
+.btn-gate:active { transform: translateY(0); }
 
 /* Electric Card (Accent Color - Orange) */
 .electric-card {
