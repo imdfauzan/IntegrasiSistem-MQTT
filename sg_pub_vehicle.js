@@ -1,5 +1,13 @@
 const mqtt = require('mqtt');
-const client = mqtt.connect('mqtt://broker.emqx.io', { protocolVersion: 5 });
+const client = mqtt.connect('mqtt://broker.emqx.io', { 
+    protocolVersion: 5,
+    will: {
+        topic: 'smartgarage/status',
+        payload: JSON.stringify({ id: 'Vehicle-Telemetry', online: false }),
+        qos: 1,
+        retain: true
+    }
+});
 
 const vehicles = [
     { id: 'Mobil SUV', type: 'Car', volt: 12.5, fuel: 80 },
@@ -8,6 +16,9 @@ const vehicles = [
 
 client.on('connect', () => {
     console.log("✅ [Publisher] Vehicle Telemetry Active");
+
+    // Kirim status online
+    client.publish('smartgarage/status', JSON.stringify({ id: 'Vehicle-Telemetry', online: true }), { qos: 1, retain: true });
     setInterval(() => {
         vehicles.forEach(v => {
             // Simulasi penurunan fuel dan tegangan aki

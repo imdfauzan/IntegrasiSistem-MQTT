@@ -188,3 +188,16 @@ header {
 .alert-list::-webkit-scrollbar { width: 6px; }
 .alert-list::-webkit-scrollbar-track { background: transparent; }
 .alert-list::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+
+/* Health Card Styles */
+.health-card { grid-column: span 1; }
+.health-list { display: flex; flex-direction: column; gap: 12px; }
+.health-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background: #f9fafb; border-radius: 12px;
+    font-size: 13px; font-weight: 500;
+}
+.health-status { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.online { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+.dot.offline { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }

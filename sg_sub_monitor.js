@@ -1,13 +1,22 @@
 const mqtt = require('mqtt');
 const Table = require('cli-table3');
 
-const client = mqtt.connect('mqtt://broker.emqx.io', { protocolVersion: 5 });
+const client = mqtt.connect('mqtt://broker.emqx.io', { 
+    protocolVersion: 5,
+    // FITUR 10: Flow Control (Backpressure)
+    // Broker hanya boleh mengirim maksimal 10 pesan "in-flight" sebelum kita kirim ACK.
+    // Mencegah client kewalahan jika ada banjir data.
+    properties: {
+        receiveMaximum: 10
+    }
+});
 
 const state = {
     vehicles: {},
     gate: 'Waiting...',
     env: { temp: 0, hum: 0, status: 'Waiting...' },
-    electric: { load: 0, status: 'Waiting...' }
+    electric: { load: 0, status: 'Waiting...' },
+    system: {} // Menyimpan status Online/Offline (LWT)
 };
 
 function getColorStatus(status) {
@@ -27,7 +36,10 @@ client.on('message', (topic, message, packet) => {
         const payload = JSON.parse(message.toString());
 
         // Routing data ke state object
-        if (topic.includes('vehicle')) {
+        if (topic === 'smartgarage/status') {
+            // FITUR 7: Monitor LWT/Online Status
+            state.system[payload.id] = payload.online ? '🟢 ONLINE' : '🔴 DEAD/OFFLINE';
+        } else if (topic.includes('vehicle')) {
             state.vehicles[payload.id] = payload;
         } else if (topic.includes('gate') || (packet.properties && packet.properties.topicAlias === 2)) {
             state.gate = payload.status;
@@ -60,4 +72,14 @@ function renderTable() {
         ['⚡ Panel Listrik', `${state.electric.load} W`, getColorStatus(state.electric.status)]
     );
     console.log(tableFacility.toString());
+
+    // FITUR 7: Tabel Health System (LWT)
+    const tableSystem = new Table({ head: ['Hardware/Device ID', 'Connection Status'] });
+    Object.entries(state.system).forEach(([id, status]) => {
+        tableSystem.push([id, status]);
+    });
+    if (Object.keys(state.system).length > 0) {
+        console.log(`\x1b[33m\x1b[1m[📡 SYSTEM HEALTH MONITOR]\x1b[0m`);
+        console.log(tableSystem.toString());
+    }
 }

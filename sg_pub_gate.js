@@ -1,10 +1,21 @@
 const mqtt = require('mqtt');
-const client = mqtt.connect('mqtt://broker.emqx.io', { protocolVersion: 5 });
+const client = mqtt.connect('mqtt://broker.emqx.io', { 
+    protocolVersion: 5,
+    will: {
+        topic: 'smartgarage/status',
+        payload: JSON.stringify({ id: 'Gate-System', online: false }),
+        qos: 1,
+        retain: true
+    }
+});
 
 let isOpen = false;
 
 client.on('connect', () => {
     console.log("✅ [Publisher] Garage Gate Active");
+
+    // Kirim status online
+    client.publish('smartgarage/status', JSON.stringify({ id: 'Gate-System', online: true }), { qos: 1, retain: true });
 
     // FITUR 1 5 = QoS 2 dan Retain: true (simpan status terakhir)
     const publishGate = (status) => {

@@ -2,6 +2,7 @@
 const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt', { protocolVersion: 5 });
 
 const vehiclesData = {};
+const systemHealth = {};
 
 client.on('connect', () => {
     console.log('Connected to MQTT via WebSocket');
@@ -15,6 +16,15 @@ client.on('connect', () => {
 client.on('message', (topic, message, packet) => {
     try {
         const payload = JSON.parse(message.toString());
+        
+        // --- SYSTEM STATUS (Fitur 7: LWT) ---
+        if (topic === 'smartgarage/status') {
+            systemHealth[payload.id] = payload.online;
+            renderHealth();
+            if (!payload.online) {
+                addAlert('⚠️ SYSTEM', `Perangkat ${payload.id} terputus (OFFLINE)!`);
+            }
+        }
         
         // --- LINGKUNGAN (Fitur 3: Topic Alias) ---
         if (topic.includes('env') || (packet.properties && packet.properties.topicAlias === 1)) {
@@ -144,4 +154,25 @@ function addAlert(title, desc) {
     if(list.children.length > 6) {
         list.removeChild(list.lastChild);
     }
+}
+
+function renderHealth() {
+    const list = document.getElementById('health-list');
+    list.innerHTML = '';
+    
+    Object.entries(systemHealth).forEach(([id, online]) => {
+        const statusText = online ? 'ONLINE' : 'OFFLINE';
+        const dotClass = online ? 'dot online' : 'dot offline';
+        const textColor = online ? '#10b981' : '#ef4444';
+
+        list.innerHTML += `
+            <div class="health-item">
+                <span>${id}</span>
+                <div class="health-status" style="color: ${textColor}">
+                    <div class="${dotClass}"></div>
+                    ${statusText}
+                </div>
+            </div>
+        `;
+    });
 }
